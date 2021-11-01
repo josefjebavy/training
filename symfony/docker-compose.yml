@@ -1,0 +1,48 @@
+version: '3.6'
+
+services:
+
+  web:
+    image: josefjebavy/debian-apache-php8.0-symfony
+    environment:
+      - TZ=Europe/Prague
+    volumes:
+      - .:/var/www/html
+    working_dir: /var/www/html
+    networks:
+      - symfony-network
+    ports:
+      - 80:80
+      - 443:443
+
+  database:
+    image: mariadb:10.6.4
+    environment:
+      - TZ=Europe/Prague
+    environment:
+      - MYSQL_ROOT_PASSWORD=pass
+      - MYSQL_DATABASE=symfony
+      - MYSQL_INITDB_SKIP_TZINFO=1 # toto vyreni prni start
+
+    volumes:
+      - ./docker/development/database:/docker-entrypoint-initdb.d/
+    networks:
+      - symfony-network
+
+  phpmyadmin:
+    depends_on:
+      - database
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - '3380:80'
+    environment:
+      PMA_HOST: database
+      MYSQL_ROOT_PASSWORD: pass
+    networks:
+      - symfony-network
+ 
+
+networks:
+  symfony-network:
+    driver: bridge
+
